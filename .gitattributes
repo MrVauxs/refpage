@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+# Must stay LF or the container entrypoint fails with "no such file or directory"
+*.sh text eol=lf
+Dockerfile text eol=lf
+
+*.png binary
+*.webp binary
+*.jpg binary
+*.gif binary
+*.avif binary
+bun.lock -text

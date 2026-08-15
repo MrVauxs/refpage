@@ -1,0 +1,35 @@
+.git
+.gitignore
+.github
+
+node_modules
+build
+.svelte-kit
+.output
+.vercel
+.netlify
+.wrangler
+
+# Secrets — provide these as environment variables instead
+.env
+.env.*
+!.env.example
+
+# Local SQLite database
+*.db
+*.db-wal
+*.db-shm
+data
+uploads
+
+.claude
+.opencode
+.vscode
+.DS_Store
+Thumbs.db
+
+Dockerfile
+.dockerignore
+docker-compose.yaml
+README.md
+AGENTS.md

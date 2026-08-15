@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1786820857071,
+      "tag": "0000_jittery_power_pack",
+      "breakpoints": true
+    }
+  ]
+}

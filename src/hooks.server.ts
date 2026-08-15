@@ -4,11 +4,15 @@ import { auth } from '#lib/server/auth.ts';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 
 const handleBetterAuth: Handle = async ({ event, resolve }) => {
-	const session = await auth.api.getSession({ headers: event.request.headers });
+	// prerendering runs this hook too, and there is no session (or database) at
+	// build time
+	if (!building) {
+		const session = await auth.api.getSession({ headers: event.request.headers });
 
-	if (session) {
-		event.locals.session = session.session;
-		event.locals.user = session.user;
+		if (session) {
+			event.locals.session = session.session;
+			event.locals.user = session.user;
+		}
 	}
 
 	return svelteKitHandler({ event, resolve, auth, building });
