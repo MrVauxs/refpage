@@ -7,11 +7,14 @@
 
 	let signingOut = $state(false);
 
-	const links = [
+	// People hands out accounts and passwords, so it is the one page an
+	// invited account cannot open — the server says no either way
+	const links = $derived([
 		{ href: '/admin', label: 'Overview' },
 		{ href: '/admin/characters', label: 'Characters' },
-		{ href: '/admin/keys', label: 'Access' }
-	];
+		{ href: '/admin/keys', label: 'Access' },
+		...(data.admin.isAdmin ? [{ href: '/admin/people', label: 'People' }] : [])
+	]);
 
 	// `/admin` would otherwise light up on every child route
 	function isActive(href: string): boolean {
@@ -47,7 +50,13 @@
 			</nav>
 
 			<div class="ml-auto flex items-center gap-4">
-				<span class="hidden text-xs text-surface-600-400 sm:inline">{data.admin.email}</span>
+				<a
+					href="/admin/account"
+					class="max-w-32 truncate text-xs text-surface-600-400 no-underline hover:text-surface-950-50 sm:max-w-none"
+					aria-current={page.url.pathname === '/admin/account' ? 'page' : undefined}
+				>
+					{data.admin.email}
+				</a>
 				<button class="btn btn-sm preset-tonal" onclick={signOut} disabled={signingOut}>
 					{signingOut ? 'Signing out…' : 'Sign out'}
 				</button>

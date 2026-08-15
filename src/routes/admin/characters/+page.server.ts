@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { requireAdmin } from '#lib/server/admin.ts';
+import { requireUser } from '#lib/server/admin.ts';
 import { createCharacter, listCharacters, shareCounts } from '#lib/server/characters.ts';
 
 export const load: PageServerLoad = async () => {
@@ -15,7 +15,7 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
 	// the layout guard only covers loads — an action reaches the server first
 	create: async (event) => {
-		await requireAdmin(event);
+		await requireUser(event);
 
 		const form = await event.request.formData();
 		const name = String(form.get('name') ?? '').trim();

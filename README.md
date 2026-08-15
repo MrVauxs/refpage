@@ -124,12 +124,24 @@ ALLOWED_EMAILS=me@example.com,someone@else.org,@mycompany.com
 
 An entry is either a whole address or, with a leading `@`, a whole domain. Matching is case-insensitive. The check runs when a user record is created, so it covers GitHub sign-in and email sign-up alike; a rejected attempt writes no account, and a rejected GitHub handshake comes back to the login page with an explanation. Leaving the variable unset or empty allows everyone.
 
-`ALLOWED_EMAILS` is the *root* list — the one only a redeploy can change. `src/lib/server/allowed-emails.ts` combines it with a second, app-managed list, which is an empty stub until there is a UI for it; the combined list is what the check uses.
+`ALLOWED_EMAILS` is the *root* list — the one only a redeploy can change. `src/lib/server/allowed-emails.ts` combines it with a second list, held in the `allowed_email` table and edited from `/admin/people`; the combined list is what the check uses.
 
-Two things to know:
+Three things to know:
 
 - It gates **account creation**, not sign-in. Accounts that already exist keep working, so removing an address from the list does not lock that person out — delete their row in the `user` table for that.
 - The address comes from the provider. GitHub sends the account's primary email, which may differ from the one shown on their public profile.
+- A root entry is also what makes someone an **administrator**, so put your own address there. See below.
+
+## Administrators and passwords
+
+Everyone with an account gets the whole of `/admin` — characters, uploads, share passwords. The exception is `/admin/people`, which hands out accounts and passwords and is open only to addresses written into `ALLOWED_EMAILS`. Someone invited from inside the app cannot invite anyone else.
+
+With `ALLOWED_EMAILS` unset the allowlist is off, and *every* signed-in account is an administrator — fine for local development, not for a deployment.
+
+There is no mail server here, so nothing sends a reset link:
+
+- Anyone can change their own password at `/admin/account`, which needs the current one and signs them out of every other device. An account that has only ever signed in through GitHub can set a first password there instead, which turns on email sign-in for it.
+- The administrator can set anyone else's password from `/admin/people` — typed or generated, shown once, and every session of theirs is dropped. That also works for a GitHub-only account, so a lost GitHub login is recoverable.
 
 ### Health
 

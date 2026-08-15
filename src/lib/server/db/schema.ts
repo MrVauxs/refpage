@@ -20,6 +20,23 @@ export const character = sqliteTable('character', {
 });
 
 /**
+ * An address (`me@example.com`) or a whole domain (`@example.com`) that may
+ * create an account. This is the half of the allowlist the admin edits from
+ * inside the app; the other half lives in `ALLOWED_EMAILS` and only a redeploy
+ * can change it. See `#lib/server/allowed-emails.ts`.
+ */
+export const allowedEmail = sqliteTable('allowed_email', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Stored already trimmed and lowercased, so matching is a plain compare. */
+	entry: text('entry').notNull().unique(),
+	/** Free text for the admin's own benefit — who this was meant for. */
+	note: text('note'),
+	createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampNow).notNull()
+});
+
+/**
  * A share password. Whoever types it gets read-only access to the characters
  * linked through {@link accessKeyCharacter} — no account, no upload rights.
  *

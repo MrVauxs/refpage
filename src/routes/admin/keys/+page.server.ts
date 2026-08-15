@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { requireAdmin } from '#lib/server/admin.ts';
+import { requireUser } from '#lib/server/admin.ts';
 import {
 	characterIdsByKey,
 	charactersExist,
@@ -33,7 +33,7 @@ function characterIds(form: FormData): string[] {
 
 export const actions: Actions = {
 	create: async (event) => {
-		await requireAdmin(event);
+		await requireUser(event);
 
 		const form = await event.request.formData();
 		const label = String(form.get('label') ?? '').trim();
@@ -53,7 +53,7 @@ export const actions: Actions = {
 	},
 
 	setCharacters: async (event) => {
-		await requireAdmin(event);
+		await requireUser(event);
 
 		const form = await event.request.formData();
 		const id = String(form.get('id') ?? '');
@@ -68,7 +68,7 @@ export const actions: Actions = {
 	},
 
 	revoke: async (event) => {
-		await requireAdmin(event);
+		await requireUser(event);
 
 		const form = await event.request.formData();
 		await revokeAccessKey(String(form.get('id') ?? ''));
@@ -77,7 +77,7 @@ export const actions: Actions = {
 	},
 
 	restore: async (event) => {
-		await requireAdmin(event);
+		await requireUser(event);
 
 		const form = await event.request.formData();
 		await restoreAccessKey(String(form.get('id') ?? ''));
@@ -86,7 +86,7 @@ export const actions: Actions = {
 	},
 
 	delete: async (event) => {
-		await requireAdmin(event);
+		await requireUser(event);
 
 		const form = await event.request.formData();
 		await deleteAccessKey(String(form.get('id') ?? ''));

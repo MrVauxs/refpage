@@ -1,6 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { requireAdmin } from '#lib/server/admin.ts';
+import { requireUser } from '#lib/server/admin.ts';
 import {
 	deleteCharacter,
 	getCharacter,
@@ -18,7 +18,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	update: async (event) => {
-		await requireAdmin(event);
+		await requireUser(event);
 
 		const form = await event.request.formData();
 		const name = String(form.get('name') ?? '').trim();
@@ -32,7 +32,7 @@ export const actions: Actions = {
 	},
 
 	delete: async (event) => {
-		await requireAdmin(event);
+		await requireUser(event);
 
 		// the join rows go with it, so any password that only named this
 		// character stops unlocking anything
