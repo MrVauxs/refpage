@@ -1,29 +1,16 @@
-# Coolify: create the resource as "Docker Compose" and point it at this file.
-# The named volume below is what keeps the SQLite database and the uploaded
-# images alive across deployments.
+# Coolify: New Resource -> your repository -> Build Pack: Docker Compose.
+#
+# The domain is set in Coolify's UI (Configuration -> Domains), not here.
 services:
   refpage:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    environment:
-      # Coolify generates the domain and wires up its proxy to port 3000
-      - SERVICE_FQDN_REFPAGE_3000
-      # SvelteKit needs the public origin to accept form POSTs, and Better Auth
-      # uses it as its base URL
-      - ORIGIN=$SERVICE_FQDN_REFPAGE_3000
-      # Coolify generates this once and keeps it — override it in the UI if you
-      # want to bring your own secret
-      - BETTER_AUTH_SECRET=$SERVICE_PASSWORD_BETTERAUTH
-      - DATABASE_URL=/data/db/refpage.db
-      - UPLOAD_DIR=/data/uploads
-      # Default is 512K, which is far too small for image uploads
-      - BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT:-25M}
-      # Optional — GitHub sign-in is only enabled when both are set
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+    expose:
+      - '3000'
     volumes:
+      # SQLite database, uploaded images and the generated auth secret
       - refpage-data:/data
     healthcheck:
       test:

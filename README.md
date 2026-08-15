@@ -40,41 +40,62 @@ Images are written by `saveUpload()` in `src/lib/server/uploads.ts` and served b
 
 ## Deploying to Coolify
 
-Both supported build packs work. **Docker Compose** is the smoother path because the volume and health check come with the file.
+**No environment variable is required.** The image carries sensible defaults, the public URL is taken from the proxy's `x-forwarded-proto` / `x-forwarded-host` headers, and the Better Auth signing secret is generated on first boot and kept on the volume. All you have to supply is the volume and the domain.
 
-### Option A — Docker Compose
+### Option A — Dockerfile (recommended)
 
-1. New Resource → Private/Public Repository → Build Pack: **Docker Compose**, compose file `docker-compose.yaml`.
-2. Coolify picks up the generated domain (`SERVICE_FQDN_REFPAGE_3000`), the `refpage-data` volume and the health check from the file.
-3. Optionally set `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` in the environment tab to turn on GitHub sign-in.
-4. Deploy.
-
-`BETTER_AUTH_SECRET` is generated once by Coolify (`SERVICE_PASSWORD_BETTERAUTH`) and stored with the resource. Override it in the UI if you want to bring your own — changing it later logs everyone out.
-
-### Option B — Dockerfile
-
-1. New Resource → Private/Public Repository → Build Pack: **Dockerfile**.
+1. New Resource → your repository → Build Pack: **Dockerfile**.
 2. Ports exposed: `3000`.
-3. Add a persistent storage entry: volume mount, destination path `/data`.
-4. Set the environment variables:
+3. Persistent Storage → add a volume mount with destination path `/data`.
+4. Configuration → Domains: set the domain you want.
+5. Deploy.
 
-   | variable                                | value                                          |
-   | --------------------------------------- | ---------------------------------------------- |
-   | `ORIGIN`                                | the app's public URL, e.g. `https://refs.example.com` |
-   | `BETTER_AUTH_SECRET`                    | 32+ random characters                          |
-   | `DATABASE_URL`                          | `/data/db/refpage.db` (already the image default) |
-   | `UPLOAD_DIR`                            | `/data/uploads` (already the image default)    |
-   | `BODY_SIZE_LIMIT`                       | `25M` (already the image default)              |
-   | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | optional, enables GitHub sign-in             |
+Environment variables stay fully editable in Coolify's UI with this build pack. Everything below is optional:
 
-5. Health check path: `/api/health` on port 3000. (The image also declares its own `HEALTHCHECK`.)
-6. Deploy.
+| variable                                   | when you'd set it                                            |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | to enable GitHub sign-in (both must be set)                  |
+| `BETTER_AUTH_SECRET`                       | to pin your own signing secret instead of the generated one  |
+| `ORIGIN`                                   | only if the app is *not* behind a reverse proxy              |
+| `BODY_SIZE_LIMIT`                          | to allow uploads larger than the default `25M`               |
+| `DATABASE_URL`, `UPLOAD_DIR`               | to move data off `/data/db` and `/data/uploads`              |
 
-`ORIGIN` must match the public URL exactly, scheme included. If it doesn't, SvelteKit rejects form POSTs with *"Cross-site POST form submissions are forbidden"* and Better Auth builds broken callback URLs.
+### Option B — Docker Compose
+
+1. New Resource → your repository → Build Pack: **Docker Compose**, compose file `docker-compose.yaml`.
+2. Configuration → Domains: set the domain (the service exposes port 3000).
+3. Deploy. The `refpage-data` volume and the health check come from the file.
+
+One caveat, and it's the reason this compose file is nearly empty: **Coolify treats the compose file as the source of truth for environment variables.** Anything listed under `environment:` shows up in the UI as *"Managed by Docker Compose"* and cannot be edited there. So to change a setting under this build pack, edit `docker-compose.yaml` and redeploy:
+
+```yaml
+services:
+  refpage:
+    environment:
+      - GITHUB_CLIENT_ID=Iv23li...
+      - GITHUB_CLIENT_SECRET=...
+```
+
+If you want UI-editable variables instead, either use the Dockerfile build pack, or let the service read Coolify's generated env file:
+
+```yaml
+services:
+  refpage:
+    env_file:
+      - path: .env
+        required: false
+```
 
 ### What the container does on start
 
-`docker/entrypoint.sh` creates `/data/db` and `/data/uploads` on the freshly mounted volume, hands them to the unprivileged `node` user, applies pending migrations, and only then starts the server as that user.
+`docker/entrypoint.sh`:
+
+1. creates `/data/db` and `/data/uploads` on the freshly mounted volume and hands them to the unprivileged `node` user,
+2. generates `/data/auth-secret` (32 random bytes, mode 600) if `BETTER_AUTH_SECRET` isn't set — it's reused on every later boot, so sessions survive restarts and redeploys,
+3. applies pending migrations,
+4. starts the server as `node`.
+
+Because the origin comes from proxy headers, don't publish the container's port directly to the internet — set `ORIGIN` explicitly if you ever do.
 
 ### Health
 

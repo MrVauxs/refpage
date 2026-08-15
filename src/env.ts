@@ -27,8 +27,8 @@ export const variables = defineEnvVars({
 		schema: optional('uploads')
 	},
 	ORIGIN: {
-		description: 'The app origin (base URL), e.g. `http://localhost:5173`. Required when running so that form POSTs are accepted and Better Auth can build its callback URLs.',
-		schema: runtimeOnly('ORIGIN')
+		description: 'Optional public base URL, e.g. `https://refs.example.com`. Behind a reverse proxy (Coolify) leave it unset — the origin is taken from the `x-forwarded-proto` / `x-forwarded-host` headers instead.',
+		schema: optional()
 	},
 	BETTER_AUTH_SECRET: {
 		description: 'Secret used to sign tokens. For production use 32 characters generated with high entropy. See [Better Auth installation](https://www.better-auth.com/docs/installation).',

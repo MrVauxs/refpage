@@ -33,6 +33,12 @@ ENV NODE_ENV=production \
 	UPLOAD_DIR=/data/uploads \
 	BODY_SIZE_LIMIT=25M
 
+# The app runs behind Coolify's reverse proxy, which sets these headers, so the
+# public URL never has to be configured. Set ORIGIN instead if you expose the
+# container port directly.
+ENV PROTOCOL_HEADER=x-forwarded-proto \
+	HOST_HEADER=x-forwarded-host
+
 # gosu lets the entrypoint prepare the mounted volume as root and then drop to
 # the unprivileged `node` user without breaking signal forwarding
 RUN apt-get update \

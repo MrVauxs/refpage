@@ -25,7 +25,9 @@ function create() {
 			: {};
 
 	return betterAuth({
-		baseURL: ORIGIN,
+		// unset behind a proxy: Better Auth then derives the origin from the
+		// request, which is what `PROTOCOL_HEADER`/`HOST_HEADER` give us
+		baseURL: ORIGIN || undefined,
 		secret: BETTER_AUTH_SECRET,
 		database: drizzleAdapter(db, { provider: 'sqlite' }),
 		emailAndPassword: { enabled: true },
