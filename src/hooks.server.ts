@@ -4,6 +4,11 @@ import { auth } from '#lib/server/auth.ts';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 
 const handleBetterAuth: Handle = async ({ event, resolve }) => {
+	// The container health check calls this over the loopback address, so the
+	// request carries no x-forwarded-host and Better Auth cannot match it against
+	// ALLOWED_HOSTS. It needs no session either, so skip auth entirely.
+	if (event.url.pathname === '/api/health') return resolve(event);
+
 	// prerendering runs this hook too, and there is no session (or database) at
 	// build time
 	if (!building) {
