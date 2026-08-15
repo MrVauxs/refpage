@@ -1,8 +1,212 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
-@import "@fontsource/fira-mono";
+@import '@fontsource/fira-mono';
 
-@import "@skeletonlabs/skeleton";
-@import "@skeletonlabs/skeleton-svelte";
-@import "@skeletonlabs/skeleton/themes/cerberus";
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton-svelte';
+
+/*
+	Dark mode follows `data-mode` on <html> rather than the OS. The site is a
+	reference-image gallery and is dark by design, so the attribute is fixed in
+	app.html; this variant is what makes every `dark:` utility — Skeleton's own
+	included — read that attribute instead of `prefers-color-scheme`.
+*/
+@custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *));
+
+@theme {
+	--font-mono: 'Fira Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/*
+	The `refpage` theme. Surfaces are a neutral near-black ramp so uploaded
+	images carry the only real colour on the page; the blue is reserved for
+	links and focus. Skeleton's own defaults supply the secondary and tertiary
+	ramps, which this site does not use.
+*/
+[data-theme='refpage'] {
+	--spacing: 0.25rem;
+	--text-scaling: 1;
+
+	--radius-base: 0.5rem;
+	--radius-container: 0.75rem;
+	--default-border-width: 1px;
+	--default-outline-width: 1px;
+	--default-ring-width: 1px;
+
+	/* Typography — Base */
+	--typo-base--font-family:
+		ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	--typo-base--font-size: inherit;
+	--typo-base--line-height: inherit;
+	--typo-base--letter-spacing: -0.005em;
+	--typo-base--text-shadow: none;
+	--typo-base--color-light: var(--color-surface-900);
+	--typo-base--color-dark: var(--color-surface-50);
+
+	/* Typography — Heading */
+	--typo-heading--font-family: inherit;
+	--typo-heading--font-weight: 600;
+	--typo-heading--letter-spacing: -0.022em;
+	--typo-heading--text-shadow: none;
+	--typo-heading--color-light: inherit;
+	--typo-heading--color-dark: inherit;
+
+	/* Typography — Anchor */
+	--typo-anchor--font-family: inherit;
+	--typo-anchor--font-size: inherit;
+	--typo-anchor--line-height: inherit;
+	--typo-anchor--letter-spacing: inherit;
+	--typo-anchor--text-shadow: none;
+	--typo-anchor--color-light: var(--color-primary-700);
+	--typo-anchor--color-dark: var(--color-primary-300);
+
+	/* Placeholders sit a step further back than Skeleton's default, which is
+	   near-white in dark mode and reads as a filled-in value. */
+	--field-placeholder: var(--color-surface-500);
+
+	/* Surface — neutral, cool, near-black at the dark end */
+	--color-surface-50: oklch(98.5% 0.001 265deg);
+	--color-surface-100: oklch(96% 0.002 265deg);
+	--color-surface-200: oklch(91% 0.003 265deg);
+	--color-surface-300: oklch(84% 0.004 265deg);
+	--color-surface-400: oklch(71% 0.005 265deg);
+	--color-surface-500: oklch(60% 0.006 265deg);
+	--color-surface-600: oklch(49% 0.006 265deg);
+	--color-surface-700: oklch(39% 0.006 265deg);
+	--color-surface-800: oklch(29% 0.006 265deg);
+	--color-surface-900: oklch(22% 0.005 265deg);
+	--color-surface-950: oklch(17.5% 0.005 265deg);
+
+	/* The page sits below the lowest surface, so a card lifts off it without
+	   needing a shadow. */
+	--color-root-bg-light: oklch(99.5% 0 none);
+	--color-root-bg-dark: oklch(13% 0.004 265deg);
+
+	/* Primary — the only accent */
+	--color-primary-50: oklch(97% 0.015 250deg);
+	--color-primary-100: oklch(94% 0.035 250deg);
+	--color-primary-200: oklch(89% 0.06 250deg);
+	--color-primary-300: oklch(82% 0.09 250deg);
+	--color-primary-400: oklch(72% 0.13 252deg);
+	--color-primary-500: oklch(60% 0.16 254deg);
+	--color-primary-600: oklch(52% 0.15 256deg);
+	--color-primary-700: oklch(44% 0.13 258deg);
+	--color-primary-800: oklch(36% 0.1 260deg);
+	--color-primary-900: oklch(28% 0.075 262deg);
+	--color-primary-950: oklch(22% 0.055 264deg);
+	--color-primary-contrast-dark: var(--color-surface-950);
+	--color-primary-contrast-light: var(--color-surface-50);
+	--color-primary-contrast-50: var(--color-primary-contrast-dark);
+	--color-primary-contrast-100: var(--color-primary-contrast-dark);
+	--color-primary-contrast-200: var(--color-primary-contrast-dark);
+	--color-primary-contrast-300: var(--color-primary-contrast-dark);
+	--color-primary-contrast-400: var(--color-primary-contrast-dark);
+	--color-primary-contrast-500: var(--color-primary-contrast-light);
+	--color-primary-contrast-600: var(--color-primary-contrast-light);
+	--color-primary-contrast-700: var(--color-primary-contrast-light);
+	--color-primary-contrast-800: var(--color-primary-contrast-light);
+	--color-primary-contrast-900: var(--color-primary-contrast-light);
+	--color-primary-contrast-950: var(--color-primary-contrast-light);
+
+	/* Error */
+	--color-error-50: oklch(97% 0.02 25deg);
+	--color-error-100: oklch(94% 0.045 25deg);
+	--color-error-200: oklch(89% 0.075 25deg);
+	--color-error-300: oklch(82% 0.11 25deg);
+	--color-error-400: oklch(73% 0.15 25deg);
+	--color-error-500: oklch(62% 0.19 25deg);
+	--color-error-600: oklch(53% 0.18 25deg);
+	--color-error-700: oklch(45% 0.155 25deg);
+	--color-error-800: oklch(37% 0.125 25deg);
+	--color-error-900: oklch(29% 0.09 25deg);
+	--color-error-950: oklch(22% 0.065 25deg);
+	--color-error-contrast-dark: var(--color-surface-950);
+	--color-error-contrast-light: var(--color-surface-50);
+	--color-error-contrast-50: var(--color-error-contrast-dark);
+	--color-error-contrast-100: var(--color-error-contrast-dark);
+	--color-error-contrast-200: var(--color-error-contrast-dark);
+	--color-error-contrast-300: var(--color-error-contrast-dark);
+	--color-error-contrast-400: var(--color-error-contrast-dark);
+	--color-error-contrast-500: var(--color-error-contrast-light);
+	--color-error-contrast-600: var(--color-error-contrast-light);
+	--color-error-contrast-700: var(--color-error-contrast-light);
+	--color-error-contrast-800: var(--color-error-contrast-light);
+	--color-error-contrast-900: var(--color-error-contrast-light);
+	--color-error-contrast-950: var(--color-error-contrast-light);
+
+	/* Success */
+	--color-success-50: oklch(97% 0.02 155deg);
+	--color-success-100: oklch(94% 0.045 155deg);
+	--color-success-200: oklch(89% 0.07 155deg);
+	--color-success-300: oklch(82% 0.1 155deg);
+	--color-success-400: oklch(74% 0.13 155deg);
+	--color-success-500: oklch(65% 0.145 155deg);
+	--color-success-600: oklch(56% 0.13 155deg);
+	--color-success-700: oklch(47% 0.11 155deg);
+	--color-success-800: oklch(38% 0.09 155deg);
+	--color-success-900: oklch(29% 0.07 155deg);
+	--color-success-950: oklch(22% 0.05 155deg);
+	--color-success-contrast-dark: var(--color-surface-950);
+	--color-success-contrast-light: var(--color-surface-50);
+	--color-success-contrast-50: var(--color-success-contrast-dark);
+	--color-success-contrast-100: var(--color-success-contrast-dark);
+	--color-success-contrast-200: var(--color-success-contrast-dark);
+	--color-success-contrast-300: var(--color-success-contrast-dark);
+	--color-success-contrast-400: var(--color-success-contrast-dark);
+	--color-success-contrast-500: var(--color-success-contrast-dark);
+	--color-success-contrast-600: var(--color-success-contrast-light);
+	--color-success-contrast-700: var(--color-success-contrast-light);
+	--color-success-contrast-800: var(--color-success-contrast-light);
+	--color-success-contrast-900: var(--color-success-contrast-light);
+	--color-success-contrast-950: var(--color-success-contrast-light);
+
+	/* Warning */
+	--color-warning-50: oklch(97% 0.03 80deg);
+	--color-warning-100: oklch(94% 0.06 80deg);
+	--color-warning-200: oklch(89% 0.09 80deg);
+	--color-warning-300: oklch(84% 0.12 78deg);
+	--color-warning-400: oklch(78% 0.14 74deg);
+	--color-warning-500: oklch(71% 0.145 68deg);
+	--color-warning-600: oklch(61% 0.135 62deg);
+	--color-warning-700: oklch(51% 0.115 58deg);
+	--color-warning-800: oklch(41% 0.095 56deg);
+	--color-warning-900: oklch(31% 0.075 54deg);
+	--color-warning-950: oklch(23% 0.055 54deg);
+	--color-warning-contrast-dark: var(--color-surface-950);
+	--color-warning-contrast-light: var(--color-surface-50);
+	--color-warning-contrast-50: var(--color-warning-contrast-dark);
+	--color-warning-contrast-100: var(--color-warning-contrast-dark);
+	--color-warning-contrast-200: var(--color-warning-contrast-dark);
+	--color-warning-contrast-300: var(--color-warning-contrast-dark);
+	--color-warning-contrast-400: var(--color-warning-contrast-dark);
+	--color-warning-contrast-500: var(--color-warning-contrast-dark);
+	--color-warning-contrast-600: var(--color-warning-contrast-dark);
+	--color-warning-contrast-700: var(--color-warning-contrast-light);
+	--color-warning-contrast-800: var(--color-warning-contrast-light);
+	--color-warning-contrast-900: var(--color-warning-contrast-light);
+	--color-warning-contrast-950: var(--color-warning-contrast-light);
+}
+
+@layer base {
+	body {
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	/* Skeleton deliberately ships no global focus style. One ring, one colour,
+	   keyboard only — a mouse click on a card should not light up. */
+	:focus-visible {
+		outline: 2px solid var(--color-primary-500);
+		outline-offset: 2px;
+	}
+
+	/* Numbers in the admin tables must not shift width as they change. */
+	:where(table) {
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+@utility hairline {
+	border-color: var(--color-surface-200-800);
+}
