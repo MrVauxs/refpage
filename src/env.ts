@@ -26,10 +26,16 @@ export const variables = defineEnvVars({
 		description: 'Directory that uploaded images are written to, e.g. `/data/uploads`. Must be on a persistent volume in production.',
 		schema: optional('uploads')
 	},
-	ORIGIN: {
-		description: 'Optional public base URL, e.g. `https://refs.example.com`. Behind a reverse proxy (Coolify) leave it unset — the origin is taken from the `x-forwarded-proto` / `x-forwarded-host` headers instead.',
+	ALLOWED_HOSTS: {
+		description:
+			'Comma-separated hostnames the app is served on, e.g. `refs.example.com` (wildcards like `*.example.com` work). Required for OAuth sign-in, which needs an absolute callback URL. Leave unset for email and password only.',
 		schema: optional()
 	},
+
+	// note: `ORIGIN` is not declared here on purpose. adapter-node bakes it in at
+	// build time, so setting it at runtime only half-applies — the server would
+	// keep deriving request URLs from the proxy headers while app code saw a
+	// different origin. The proxy headers are the single source of truth.
 	BETTER_AUTH_SECRET: {
 		description: 'Secret used to sign tokens. For production use 32 characters generated with high entropy. See [Better Auth installation](https://www.better-auth.com/docs/installation).',
 		schema: runtimeOnly('BETTER_AUTH_SECRET')

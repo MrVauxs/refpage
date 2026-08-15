@@ -1,5 +1,5 @@
 import {
-	ORIGIN,
+	ALLOWED_HOSTS,
 	BETTER_AUTH_SECRET,
 	GITHUB_CLIENT_ID,
 	GITHUB_CLIENT_SECRET
@@ -24,10 +24,26 @@ function create() {
 				}
 			: {};
 
+	const allowedHosts = ALLOWED_HOSTS.split(',')
+		.map((host) => host.trim())
+		.filter(Boolean);
+
 	return betterAuth({
-		// unset behind a proxy: Better Auth then derives the origin from the
-		// request, which is what `PROTOCOL_HEADER`/`HOST_HEADER` give us
-		baseURL: ORIGIN || undefined,
+		// A *static* baseURL has to byte-match the origin adapter-node derives
+		// from the proxy headers, or `svelteKitHandler` stops recognising
+		// `/api/auth/*` and every auth route 404s. So resolve it per request
+		// instead, restricted to the hosts we actually serve — that also gives
+		// OAuth providers an absolute `redirect_uri`.
+		baseURL: allowedHosts.length
+			? {
+					allowedHosts,
+					// used when a call can't see the request headers
+					fallback: /[*?]/.test(allowedHosts[0]) ? undefined : `https://${allowedHosts[0]}`
+				}
+			: undefined,
+		// the host and scheme come from the reverse proxy in front of us. Safe
+		// here because the container is only reachable through that proxy.
+		trustedProxyHeaders: true,
 		secret: BETTER_AUTH_SECRET,
 		database: drizzleAdapter(db, { provider: 'sqlite' }),
 		emailAndPassword: { enabled: true },

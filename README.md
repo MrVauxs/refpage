@@ -6,7 +6,7 @@ A small, private character reference sheet site — SvelteKit (adapter-node), Be
 
 ```sh
 bun install
-cp .env.example .env   # then fill in BETTER_AUTH_SECRET and ORIGIN
+cp .env.example .env   # then fill in BETTER_AUTH_SECRET
 bun run db:push        # or db:migrate to apply the committed migrations
 bun run dev
 ```
@@ -55,8 +55,8 @@ Environment variables stay fully editable in Coolify's UI with this build pack. 
 | variable                                   | when you'd set it                                            |
 | ------------------------------------------ | ------------------------------------------------------------ |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | to enable GitHub sign-in (both must be set)                  |
+| `ALLOWED_HOSTS`                            | required for OAuth sign-in — see below                       |
 | `BETTER_AUTH_SECRET`                       | to pin your own signing secret instead of the generated one  |
-| `ORIGIN`                                   | only if the app is *not* behind a reverse proxy              |
 | `BODY_SIZE_LIMIT`                          | to allow uploads larger than the default `25M`               |
 | `DATABASE_URL`, `UPLOAD_DIR`               | to move data off `/data/db` and `/data/uploads`              |
 
@@ -95,7 +95,23 @@ services:
 3. applies pending migrations,
 4. starts the server as `node`.
 
-Because the origin comes from proxy headers, don't publish the container's port directly to the internet — set `ORIGIN` explicitly if you ever do.
+Because the origin comes from proxy headers, don't publish the container's port directly to the internet. Put it behind the proxy (Coolify does this for you) so a client can't set `x-forwarded-host` itself.
+
+## GitHub sign-in
+
+Email and password sign-in works with no configuration. OAuth needs an absolute callback URL, so it needs to know the public hostname:
+
+1. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App.
+2. Authorization callback URL: `https://<your-domain>/api/auth/callback/github`.
+3. In Coolify set three variables:
+
+   | variable               | value                                    |
+   | ---------------------- | ---------------------------------------- |
+   | `ALLOWED_HOSTS`        | `<your-domain>` — hostname only, no scheme, no path. Comma-separate several; `*.example.com` works. |
+   | `GITHUB_CLIENT_ID`     | from the OAuth app                       |
+   | `GITHUB_CLIENT_SECRET` | from the OAuth app                       |
+
+`ALLOWED_HOSTS` is an allowlist, not a single value: the request's forwarded host is used when it matches an entry, otherwise the first entry is used as a fallback. Without it Better Auth has no absolute base URL and GitHub rejects the handshake with a relative `redirect_uri`.
 
 ### Health
 
