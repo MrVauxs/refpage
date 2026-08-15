@@ -56,6 +56,7 @@ Environment variables stay fully editable in Coolify's UI with this build pack. 
 | ------------------------------------------ | ------------------------------------------------------------ |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | to enable GitHub sign-in (both must be set)                  |
 | `ALLOWED_HOSTS`                            | required for OAuth sign-in — see below                       |
+| `ALLOWED_EMAILS`                           | to restrict who can create an account — see below            |
 | `BETTER_AUTH_SECRET`                       | to pin your own signing secret instead of the generated one  |
 | `BODY_SIZE_LIMIT`                          | to allow uploads larger than the default `25M`               |
 | `DATABASE_URL`, `UPLOAD_DIR`               | to move data off `/data/db` and `/data/uploads`              |
@@ -112,6 +113,23 @@ Email and password sign-in works with no configuration. OAuth needs an absolute 
    | `GITHUB_CLIENT_SECRET` | from the OAuth app                       |
 
 `ALLOWED_HOSTS` is an allowlist, not a single value: the request's forwarded host is used when it matches an entry, otherwise the first entry is used as a fallback. Without it Better Auth has no absolute base URL and GitHub rejects the handshake with a relative `redirect_uri`.
+
+## Restricting who can sign up
+
+By default anyone who can reach the site can create an account. Set `ALLOWED_EMAILS` to a comma-separated allowlist to change that:
+
+```
+ALLOWED_EMAILS=me@example.com,someone@else.org,@mycompany.com
+```
+
+An entry is either a whole address or, with a leading `@`, a whole domain. Matching is case-insensitive. The check runs when a user record is created, so it covers GitHub sign-in and email sign-up alike; a rejected attempt writes no account, and a rejected GitHub handshake comes back to the login page with an explanation. Leaving the variable unset or empty allows everyone.
+
+`ALLOWED_EMAILS` is the *root* list — the one only a redeploy can change. `src/lib/server/allowed-emails.ts` combines it with a second, app-managed list, which is an empty stub until there is a UI for it; the combined list is what the check uses.
+
+Two things to know:
+
+- It gates **account creation**, not sign-in. Accounts that already exist keep working, so removing an address from the list does not lock that person out — delete their row in the `user` table for that.
+- The address comes from the provider. GitHub sends the account's primary email, which may differ from the one shown on their public profile.
 
 ### Health
 

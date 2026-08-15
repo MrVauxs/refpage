@@ -5,11 +5,16 @@ import {
 	GITHUB_CLIENT_SECRET
 } from '$app/env/private';
 
+import { APIError } from 'better-auth/api';
 import { betterAuth } from 'better-auth/minimal';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
 import { db } from '#lib/server/db/index.ts';
+import { isAllowedEmail } from '#lib/server/allowed-emails.ts';
+
+/** `error` query parameter the OAuth callback redirects with when the hook below rejects. */
+export const EMAIL_NOT_ALLOWED = 'EMAIL_NOT_ALLOWED';
 
 function create() {
 	// only register GitHub when it is actually configured — otherwise a
@@ -48,6 +53,29 @@ function create() {
 		database: drizzleAdapter(db, { provider: 'sqlite' }),
 		emailAndPassword: { enabled: true },
 		socialProviders,
+		databaseHooks: {
+			user: {
+				create: {
+					// The gate sits on user creation, so it covers every way in —
+					// GitHub OAuth and email sign-up alike. Accounts that already
+					// exist keep working even if their address is dropped from the
+					// list later.
+					before: async (user) => {
+						if (!(await isAllowedEmail(user.email))) {
+							// the OAuth callback only turns an APIError into a redirect
+							// to `errorCallbackURL` when the body carries a `code`;
+							// without one it answers the callback with raw JSON instead
+							throw new APIError('FORBIDDEN', {
+								code: EMAIL_NOT_ALLOWED,
+								message: 'This email address is not allowed to sign up.'
+							});
+						}
+
+						return { data: user };
+					}
+				}
+			}
+		},
 		plugins: [
 			sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
 		]

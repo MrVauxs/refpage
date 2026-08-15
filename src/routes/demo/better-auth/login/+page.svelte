@@ -1,13 +1,17 @@
 <script lang='ts'>
 	import { enhance } from '$app/forms';
-	import type { ActionData } from './$types';
+	import type { ActionData, PageData } from './$types';
 
-	let { form }: { form: ActionData } = $props();
+	let { data, form }: { data: PageData; form: ActionData } = $props();
+
+	// the action reports its own failures, a rejected OAuth handshake comes back
+	// as a redirect the load function reads
+	let message = $derived(form?.message ?? data.message);
 </script>
 
 <h1>Login</h1>
-{#if form?.message}
-	<p class="text-red-600">{form.message}</p>
+{#if message}
+	<p class="text-red-600">{message}</p>
 {/if}
 <form method="post" action="?/signInSocial" use:enhance>
 	<input type="hidden" name="provider" value="github" />

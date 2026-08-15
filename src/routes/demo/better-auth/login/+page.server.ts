@@ -1,16 +1,30 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import type { PageServerLoad } from './$types';
-import { auth } from '#lib/server/auth.ts';
+import { EMAIL_NOT_ALLOWED, auth } from '#lib/server/auth.ts';
 
 /** Origins the social sign-in action is permitted to redirect to. */
 const OAUTH_ORIGINS = ['https://github.com'];
+
+/** Where a failed OAuth handshake comes back to, as `?error=CODE`. */
+const ERROR_CALLBACK_URL = '/demo/better-auth/login';
+
+const ERROR_MESSAGES: Record<string, string> = {
+	[EMAIL_NOT_ALLOWED]: 'That account’s email address is not allowed to sign up here.'
+};
 
 export const load: PageServerLoad = (event) => {
 	if (event.locals.user) {
 		return redirect(302, '/demo/better-auth');
 	}
-	return {};
+
+	const error = event.url.searchParams.get('error');
+
+	return {
+		// the provider and Better Auth both report failures as a redirect back
+		// here, so the page has to read them off the URL rather than from `form`
+		message: error ? (ERROR_MESSAGES[error] ?? 'Sign-in failed.') : undefined
+	};
 };
 
 export const actions: Actions = {
@@ -25,7 +39,8 @@ export const actions: Actions = {
 			headers: event.request.headers,
 			body: {
 				provider: provider as "github",
-				callbackURL
+				callbackURL,
+				errorCallbackURL: ERROR_CALLBACK_URL
 			}
 		});
 

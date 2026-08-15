@@ -31,6 +31,11 @@ export const variables = defineEnvVars({
 			'Comma-separated hostnames the app is served on, e.g. `refs.example.com` (wildcards like `*.example.com` work). Required for OAuth sign-in, which needs an absolute callback URL. Leave unset for email and password only.',
 		schema: optional()
 	},
+	ALLOWED_EMAILS: {
+		description:
+			'Comma-separated allowlist of addresses that may create an account, e.g. `me@example.com,@example.com` (a leading `@` allows a whole domain). Applies to GitHub sign-in and email sign-up. Leave unset to allow anyone; existing accounts are never locked out.',
+		schema: optional()
+	},
 
 	// note: `ORIGIN` is not declared here on purpose. adapter-node bakes it in at
 	// build time, so setting it at runtime only half-applies — the server would
