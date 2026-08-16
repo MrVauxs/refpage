@@ -9,6 +9,20 @@ services:
     restart: unless-stopped
     expose:
       - '3000'
+    environment:
+      # Coolify generates the domain and points its proxy at port 3000
+      - SERVICE_FQDN_REFPAGE_3000
+      - ALLOWED_HOSTS=$SERVICE_FQDN_REFPAGE_3000
+      # Generated once by Coolify and kept, so sessions survive redeploys.
+      # Override it in the UI to bring your own.
+      - BETTER_AUTH_SECRET=$SERVICE_PASSWORD_BETTERAUTH
+      # Who may create an account. Blank allows anyone.
+      - ALLOWED_EMAILS=${ALLOWED_EMAILS:-}
+      # Default is 512K, far too small for image uploads
+      - BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT:-25M}
+      # Optional — GitHub sign-in is only enabled when both are set
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
     volumes:
       # SQLite database, uploaded images and the generated auth secret
       - refpage-data:/data

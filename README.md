@@ -67,25 +67,17 @@ Environment variables stay fully editable in Coolify's UI with this build pack. 
 2. Configuration → Domains: set the domain (the service exposes port 3000).
 3. Deploy. The `refpage-data` volume and the health check come from the file.
 
-One caveat, and it's the reason this compose file is nearly empty: **Coolify treats the compose file as the source of truth for environment variables.** Anything listed under `environment:` shows up in the UI as *"Managed by Docker Compose"* and cannot be edited there. So to change a setting under this build pack, edit `docker-compose.yaml` and redeploy:
+This build pack does more for you than the Dockerfile one, because the compose file can use Coolify's magic variables:
 
-```yaml
-services:
-  refpage:
-    environment:
-      - GITHUB_CLIENT_ID=Iv23li...
-      - GITHUB_CLIENT_SECRET=...
-```
+| line in `docker-compose.yaml`               | what it does                                                                 |
+| ------------------------------------------- | ---------------------------------------------------------------------------- |
+| `SERVICE_FQDN_REFPAGE_3000`                 | generates the domain and points the proxy at port 3000                        |
+| `ALLOWED_HOSTS=$SERVICE_FQDN_REFPAGE_3000`  | hands that domain to Better Auth, so GitHub sign-in needs no domain typed in  |
+| `BETTER_AUTH_SECRET=$SERVICE_PASSWORD_...`  | Coolify generates a secret once and keeps it, instead of the on-volume one    |
 
-If you want UI-editable variables instead, either use the Dockerfile build pack, or let the service read Coolify's generated env file:
+`SERVICE_FQDN_*` expands to a bare hostname, `SERVICE_URL_*` to one with a scheme — `ALLOWED_HOSTS` wants the bare form. There is deliberately no `ORIGIN`: adapter-node v6 inlines it from `kit.paths.origin` at **build** time, so a runtime value is ignored entirely.
 
-```yaml
-services:
-  refpage:
-    env_file:
-      - path: .env
-        required: false
-```
+The only variable left to set by hand is the GitHub pair, if you want OAuth.
 
 ### What the container does on start
 

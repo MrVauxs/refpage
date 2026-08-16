@@ -29,8 +29,10 @@ function create() {
 				}
 			: {};
 
+	// tolerate a pasted URL — Better Auth compares against the bare host, and
+	// `https://https://…` in the fallback would be a confusing way to find out
 	const allowedHosts = ALLOWED_HOSTS.split(',')
-		.map((host) => host.trim())
+		.map((host) => host.trim().replace(/^[a-z][a-z0-9+.-]*:\/\//i, '').replace(/\/.*$/, ''))
 		.filter(Boolean);
 
 	return betterAuth({
