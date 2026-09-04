@@ -5,6 +5,15 @@
 	let { data } = $props();
 
 	let leaving = $state(false);
+	let query = $state('');
+	let filtered = $derived.by(() => {
+		const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+		if (!terms.length) return data.characters;
+		return data.characters.filter((row) => {
+			const haystack = `${row.name} ${row.tags.join(' ')}`.toLowerCase();
+			return terms.every((term) => haystack.includes(term));
+		});
+	});
 
 	async function leave() {
 		leaving = true;
@@ -36,23 +45,29 @@
 	</header>
 
 	<main class="mx-auto max-w-5xl px-6 py-10">
-		<h1 class="text-xl">References</h1>
-		<p class="mt-1 text-sm text-surface-600-400">
-			{#if data.viewer.kind === 'guest'}
-				Shared with you as <span class="text-surface-950-50">{data.viewer.label}</span>.
-			{:else}
-				Every character on the site.
-			{/if}
-		</p>
+		<div class="flex flex-wrap items-end justify-between gap-4">
+			<h1 class="text-xl">Characters</h1>
+			<label class="label w-full sm:w-72">
+				<span class="sr-only">Filter characters</span>
+				<input class="input text-sm" type="search" placeholder="Filter names or tags" bind:value={query} />
+			</label>
+		</div>
 
-		{#if data.characters.length}
+		{#if filtered.length}
 			<ul class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-				{#each data.characters as row (row.id)}
-					<li class="card preset-outlined-surface-200-800 p-5">
-						<h2 class="text-base text-surface-950-50">{row.name}</h2>
-						{#if row.summary}
-							<p class="mt-1 text-sm text-pretty text-surface-600-400">{row.summary}</p>
-						{/if}
+				{#each filtered as row (row.id)}
+					<li class="overflow-hidden rounded-container border border-surface-200-800">
+						<a href="/characters/{row.slug}" class="block no-underline">
+							{#if row.cover}
+								<img class="aspect-[4/3] w-full bg-surface-100-900 object-cover" src="/uploads/{row.cover}" alt="" />
+							{:else}
+								<div class="grid aspect-[4/3] place-items-center bg-surface-100-900 text-xs text-surface-600-400">No images</div>
+							{/if}
+							<div class="flex items-center justify-between gap-3 p-4">
+								<h2 class="truncate text-base text-surface-950-50">{row.name}</h2>
+								<span class="shrink-0 text-xs text-surface-600-400">{row.count}</span>
+							</div>
+						</a>
 					</li>
 				{/each}
 			</ul>
@@ -60,7 +75,7 @@
 			<p
 				class="mt-8 rounded-container border border-dashed border-surface-200-800 p-10 text-center text-sm text-surface-600-400"
 			>
-				This password does not unlock anything yet.
+				{query ? 'No matches.' : 'No characters.'}
 			</p>
 		{/if}
 	</main>

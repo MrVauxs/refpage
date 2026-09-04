@@ -1,6 +1,7 @@
 import { asc, eq, inArray, like, sql } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.ts';
-import { accessKey, accessKeyCharacter, character } from '#lib/server/db/schema.ts';
+import { accessKey, accessKeyCharacter, character, referenceImage } from '#lib/server/db/schema.ts';
+import { deleteUpload } from '#lib/server/uploads.ts';
 
 export type CharacterRow = typeof character.$inferSelect;
 
@@ -11,6 +12,11 @@ export function listCharacters() {
 
 export async function getCharacter(id: string): Promise<CharacterRow | undefined> {
 	const [row] = await db.select().from(character).where(eq(character.id, id)).limit(1);
+	return row;
+}
+
+export async function getCharacterBySlug(slug: string): Promise<CharacterRow | undefined> {
+	const [row] = await db.select().from(character).where(eq(character.slug, slug)).limit(1);
 	return row;
 }
 
@@ -82,7 +88,12 @@ export async function updateCharacter(
 }
 
 export async function deleteCharacter(id: string): Promise<void> {
+	const images = await db
+		.select({ fileKey: referenceImage.fileKey })
+		.from(referenceImage)
+		.where(eq(referenceImage.characterId, id));
 	await db.delete(character).where(eq(character.id, id));
+	await Promise.all(images.map((image) => deleteUpload(image.fileKey)));
 }
 
 /** The share passwords that unlock one character, revoked ones included. */

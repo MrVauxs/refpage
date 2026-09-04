@@ -45,12 +45,12 @@
 
 		<div class="mt-4 flex flex-wrap items-center gap-3">
 			<code
-				class="rounded-base border border-surface-300-700 bg-surface-50-950/60 px-3 py-2 font-mono text-base tracking-wider select-all"
+				class="flex h-10 items-center rounded-base border border-surface-300-700 bg-surface-50-950/60 px-3 font-mono text-base tracking-wider select-all"
 			>
 				{reset.password}
 			</code>
 			<button
-				class="btn btn-sm preset-filled"
+				class="btn h-10 preset-filled"
 				type="button"
 				onclick={() => copyPassword(reset.password)}
 			>
@@ -67,7 +67,7 @@
 		<label class="label sm:w-72">
 			<span class="label-text text-xs text-surface-600-400">Address or domain</span>
 			<input
-				class="input text-base"
+				class="input h-10 text-base"
 				name="entry"
 				placeholder="ada@example.com"
 				autocomplete="off"
@@ -81,10 +81,10 @@
 			<span class="label-text text-xs text-surface-600-400">
 				Note <span class="opacity-60">(optional)</span>
 			</span>
-			<input class="input text-base" name="note" value={form?.note ?? ''} />
+			<input class="input h-10 text-base" name="note" value={form?.note ?? ''} />
 		</label>
 
-		<button class="btn preset-filled shrink-0">Allow</button>
+		<button class="btn h-10 shrink-0 preset-filled">Allow</button>
 	</form>
 
 	<p class="mt-2 text-xs text-surface-600-400">
@@ -198,7 +198,7 @@
 									</span>
 								</span>
 								<input
-									class="input font-mono text-base"
+									class="input h-10 font-mono text-base"
 									name="password"
 									autocomplete="off"
 									spellcheck="false"
@@ -206,7 +206,7 @@
 								/>
 							</label>
 
-							<button class="btn preset-filled shrink-0">
+							<button class="btn h-10 shrink-0 preset-filled">
 								Set password for {account.email}
 							</button>
 						</form>

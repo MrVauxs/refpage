@@ -12,6 +12,7 @@
 	const links = $derived([
 		{ href: '/admin', label: 'Overview' },
 		{ href: '/admin/characters', label: 'Characters' },
+		{ href: '/characters', label: 'Gallery' },
 		{ href: '/admin/keys', label: 'Access' },
 		...(data.admin.isAdmin ? [{ href: '/admin/people', label: 'People' }] : [])
 	]);

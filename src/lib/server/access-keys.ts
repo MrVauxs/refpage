@@ -21,6 +21,7 @@ export function generateAccessPassword(): string {
 export type AccessKeyRow = {
 	id: string;
 	label: string;
+	password: string;
 	createdAt: Date;
 	lastUsedAt: Date | null;
 	revokedAt: Date | null;
@@ -32,6 +33,7 @@ export async function listAccessKeys(): Promise<AccessKeyRow[]> {
 		.select({
 			id: accessKey.id,
 			label: accessKey.label,
+			password: accessKey.password,
 			createdAt: accessKey.createdAt,
 			lastUsedAt: accessKey.lastUsedAt,
 			revokedAt: accessKey.revokedAt,
@@ -58,9 +60,8 @@ export async function characterIdsByKey(): Promise<Map<string, string[]>> {
 }
 
 /**
- * Creates a key and returns the plaintext password alongside it. This is the
- * only moment the password exists in readable form — only its hash is stored,
- * so a lost password means issuing a new key.
+ * Creates a visible share password. The slow hash still verifies sign-in;
+ * plaintext is retained so the admin can copy the password or its link later.
  */
 export async function createAccessKey(input: {
 	label: string;
@@ -72,7 +73,7 @@ export async function createAccessKey(input: {
 
 	const [row] = await db
 		.insert(accessKey)
-		.values({ label: input.label, ...secrets })
+		.values({ label: input.label, password, ...secrets })
 		.returning({ id: accessKey.id });
 
 	await setAccessKeyCharacters(row.id, input.characterIds);

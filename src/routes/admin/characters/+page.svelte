@@ -22,15 +22,15 @@
 >
 	<label class="label sm:w-56">
 		<span class="label-text text-xs text-surface-600-400">Name</span>
-		<input class="input text-base" name="name" value={form?.name ?? ''} required />
+		<input class="input h-10 text-base" name="name" value={form?.name ?? ''} required />
 	</label>
 
 	<label class="label flex-1">
 		<span class="label-text text-xs text-surface-600-400">Summary <span class="opacity-60">(optional)</span></span>
-		<input class="input text-base" name="summary" value={form?.summary ?? ''} />
+		<input class="input h-10 text-base" name="summary" value={form?.summary ?? ''} />
 	</label>
 
-	<button class="btn preset-filled shrink-0">Add character</button>
+	<button class="btn h-10 shrink-0 preset-filled">Add character</button>
 </form>
 
 {#if form?.message}

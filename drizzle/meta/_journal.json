@@ -29,6 +29,34 @@
       "when": 1786834468574,
       "tag": "0003_minor_the_spike",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788521555562,
+      "tag": "0004_daffy_colossus",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788522525437,
+      "tag": "0005_keen_cerise",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1788523330087,
+      "tag": "0006_flashy_argent",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1788528710729,
+      "tag": "0007_oval_cammi",
+      "breakpoints": true
     }
   ]
 }

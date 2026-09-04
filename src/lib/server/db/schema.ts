@@ -1,5 +1,12 @@
 import { relations, sql } from 'drizzle-orm';
-import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import {
+	type AnySQLiteColumn,
+	index,
+	integer,
+	primaryKey,
+	sqliteTable,
+	text
+} from 'drizzle-orm/sqlite-core';
 
 /** Matches the `created_at` default Better Auth generated for its own tables. */
 const timestampNow = sql`(cast(unixepoch('subsecond') * 1000 as integer))`;
@@ -52,6 +59,8 @@ export const accessKey = sqliteTable('access_key', {
 		.$defaultFn(() => crypto.randomUUID()),
 	/** Who this password was handed to. Shown in the admin list, never public. */
 	label: text('label').notNull(),
+	/** Stored openly because these are share links, not account credentials. */
+	password: text('password').notNull(),
 	lookup: text('lookup').notNull().unique(),
 	hash: text('hash').notNull(),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampNow).notNull(),
@@ -76,8 +85,88 @@ export const accessKeyCharacter = sqliteTable(
 	]
 );
 
+export const referenceImage = sqliteTable(
+	'reference_image',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		characterId: text('character_id')
+			.notNull()
+			.references(() => character.id, { onDelete: 'cascade' }),
+		variantOfId: text('variant_of_id').references((): AnySQLiteColumn => referenceImage.id, {
+			onDelete: 'set null'
+		}),
+		isCover: integer('is_cover', { mode: 'boolean' }).default(false).notNull(),
+		fileKey: text('file_key').notNull().unique(),
+		description: text('description'),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampNow).notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+			.default(timestampNow)
+			.$onUpdate(() => new Date())
+			.notNull()
+	},
+	(table) => [
+		index('reference_image_characterId_idx').on(table.characterId),
+		index('reference_image_variantOfId_idx').on(table.variantOfId)
+	]
+);
+
+export const tag = sqliteTable('tag', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	name: text('name').notNull().unique()
+});
+
+export const referenceImageTag = sqliteTable(
+	'reference_image_tag',
+	{
+		imageId: text('image_id')
+			.notNull()
+			.references(() => referenceImage.id, { onDelete: 'cascade' }),
+		tagId: text('tag_id')
+			.notNull()
+			.references(() => tag.id, { onDelete: 'cascade' })
+	},
+	(table) => [
+		primaryKey({ columns: [table.imageId, table.tagId] }),
+		index('reference_image_tag_tagId_idx').on(table.tagId)
+	]
+);
+
 export const characterRelations = relations(character, ({ many }) => ({
-	accessKeys: many(accessKeyCharacter)
+	accessKeys: many(accessKeyCharacter),
+	images: many(referenceImage)
+}));
+
+export const referenceImageRelations = relations(referenceImage, ({ one, many }) => ({
+	character: one(character, {
+		fields: [referenceImage.characterId],
+		references: [character.id]
+	}),
+	variantOf: one(referenceImage, {
+		fields: [referenceImage.variantOfId],
+		references: [referenceImage.id],
+		relationName: 'imageVariants'
+	}),
+	variants: many(referenceImage, { relationName: 'imageVariants' }),
+	tags: many(referenceImageTag)
+}));
+
+export const tagRelations = relations(tag, ({ many }) => ({
+	images: many(referenceImageTag)
+}));
+
+export const referenceImageTagRelations = relations(referenceImageTag, ({ one }) => ({
+	image: one(referenceImage, {
+		fields: [referenceImageTag.imageId],
+		references: [referenceImage.id]
+	}),
+	tag: one(tag, {
+		fields: [referenceImageTag.tagId],
+		references: [tag.id]
+	})
 }));
 
 export const accessKeyRelations = relations(accessKey, ({ many }) => ({

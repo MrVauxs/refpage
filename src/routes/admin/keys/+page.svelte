@@ -4,17 +4,25 @@
 
 	let { data, form } = $props();
 
-	let copied = $state(false);
+	let copied = $state<string | undefined>();
 	let openKey = $state<string | undefined>();
 
-	async function copyPassword(password: string) {
+	async function copy(value: string, id: string) {
 		try {
-			await navigator.clipboard.writeText(password);
-			copied = true;
-			setTimeout(() => (copied = false), 2000);
+			await navigator.clipboard.writeText(value);
+			copied = id;
+			setTimeout(() => (copied = undefined), 2000);
 		} catch {
-			copied = false;
+			copied = undefined;
 		}
+	}
+
+	function sharePath(password: string) {
+		return `/access?key=${encodeURIComponent(password)}`;
+	}
+
+	function copyLink(key: { id: string; password: string }) {
+		return copy(new URL(sharePath(key.password), location.origin).href, `link-${key.id}`);
 	}
 
 	function confirmDelete(label: string) {
@@ -29,31 +37,31 @@
 <svelte:head><title>Access · refpage</title></svelte:head>
 
 <h1 class="text-xl">Access</h1>
-<p class="mt-1 text-sm text-surface-600-400">
-	Each password is handed to one person or group and unlocks exactly the characters you tick. It
-	grants no upload or edit rights.
-</p>
 
 {#if form?.created}
 	{@const created = form.created}
 	<div class="card preset-tonal-success mt-6 p-5">
 		<p class="text-sm font-medium">Password for {created.label}</p>
-		<p class="mt-1 text-xs opacity-80">
-			Copy it now — only a hash is stored, so this is the last time it can be read.
-		</p>
-
 		<div class="mt-4 flex flex-wrap items-center gap-3">
 			<code
-				class="rounded-base border border-surface-300-700 bg-surface-50-950/60 px-3 py-2 font-mono text-base tracking-wider select-all"
+				class="flex h-10 items-center rounded-base border border-surface-300-700 bg-surface-50-950/60 px-3 font-mono text-base tracking-wider select-all"
 			>
 				{created.password}
 			</code>
 			<button
-				class="btn btn-sm preset-filled"
+				class="btn h-10 preset-filled"
 				type="button"
-				onclick={() => copyPassword(created.password)}
+				onclick={() => copy(created.password, 'created')}
 			>
-				{copied ? 'Copied' : 'Copy'}
+				{copied === 'created' ? 'Copied' : 'Copy'}
+			</button>
+			<button
+				class="btn h-10 preset-tonal"
+				type="button"
+				onclick={() =>
+					copy(new URL(sharePath(created.password), location.origin).href, 'created-link')}
+			>
+				{copied === 'created-link' ? 'Copied URL' : 'Copy URL'}
 			</button>
 		</div>
 	</div>
@@ -62,7 +70,7 @@
 <form class="mt-8 max-w-lg space-y-4" method="post" action="?/create" use:enhance>
 	<label class="label">
 		<span class="label-text text-xs text-surface-600-400">Who is this for?</span>
-		<input class="input text-base" name="label" placeholder="e.g. Commission — Ada" required />
+		<input class="input h-10 text-base" name="label" placeholder="e.g. Commission — Ada" required />
 	</label>
 
 	<fieldset class="fieldset">
@@ -72,7 +80,7 @@
 			<div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
 				{#each data.characters as option (option.id)}
 					<label class="flex items-center gap-2 text-sm">
-						<input class="checkbox" type="checkbox" name="characterId" value={option.id} />
+					<input class="checkbox checkbox-sm" type="checkbox" name="characterId" value={option.id} />
 						{option.name}
 					</label>
 				{/each}
@@ -88,11 +96,11 @@
 		<span class="label-text text-xs text-surface-600-400">
 			Password <span class="opacity-60">(optional — one is generated if you leave this blank)</span>
 		</span>
-		<input class="input font-mono text-base" name="password" autocomplete="off" spellcheck="false" />
+		<input class="input h-10 font-mono text-base" name="password" autocomplete="off" spellcheck="false" />
 	</label>
 
 	<div class="flex items-center gap-3">
-		<button class="btn preset-filled">Create password</button>
+		<button class="btn h-10 preset-filled">Create password</button>
 		{#if form?.message}
 			<span class="text-sm text-error-600-400" role="alert">{form.message}</span>
 		{/if}
@@ -107,7 +115,10 @@
 			{#each data.keys as key (key.id)}
 				<li class="py-4">
 					<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-						<span class="text-sm text-surface-950-50">{key.label}</span>
+						<div class="min-w-0">
+							<span class="block text-sm text-surface-950-50">{key.label}</span>
+							<code class="block font-mono text-xs text-surface-600-400 select-all">{key.password}</code>
+						</div>
 
 						{#if key.revokedAt}
 							<span class="badge preset-tonal-error text-xs">revoked</span>
@@ -121,6 +132,10 @@
 						</span>
 
 						<div class="ml-auto flex items-center gap-2">
+							<a class="btn btn-sm preset-filled" href={sharePath(key.password)} target="_blank">Open</a>
+							<button class="btn btn-sm preset-tonal" type="button" onclick={() => copyLink(key)}>
+								{copied === `link-${key.id}` ? 'Copied' : 'Copy link'}
+							</button>
 							<button
 								class="btn btn-sm preset-tonal"
 								type="button"
@@ -168,7 +183,7 @@
 								{#each data.characters as option (option.id)}
 									<label class="flex items-center gap-2 text-sm">
 										<input
-											class="checkbox"
+											class="checkbox checkbox-sm"
 											type="checkbox"
 											name="characterId"
 											value={option.id}

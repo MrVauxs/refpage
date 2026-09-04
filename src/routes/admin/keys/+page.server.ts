@@ -48,7 +48,6 @@ export const actions: Actions = {
 
 		const created = await createAccessKey({ label, password: custom || undefined, characterIds: ids });
 
-		// the only time the plaintext exists — the row stores a hash
 		return { created: { label, password: created.password } };
 	},
 

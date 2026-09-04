@@ -1,0 +1,1 @@
+ALTER TABLE `reference_image` ADD `is_cover` integer DEFAULT false NOT NULL;

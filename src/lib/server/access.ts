@@ -104,6 +104,21 @@ export function charactersForKey(keyId: string) {
 		.orderBy(character.name);
 }
 
+export async function characterForKey(keyId: string, slug: string) {
+	const [row] = await db
+		.select({
+			id: character.id,
+			slug: character.slug,
+			name: character.name,
+			summary: character.summary
+		})
+		.from(accessKeyCharacter)
+		.innerJoin(character, eq(character.id, accessKeyCharacter.characterId))
+		.where(and(eq(accessKeyCharacter.accessKeyId, keyId), eq(character.slug, slug)))
+		.limit(1);
+	return row;
+}
+
 const failures = new Map<string, number[]>();
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_FAILURES = 10;
