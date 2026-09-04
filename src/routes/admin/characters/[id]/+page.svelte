@@ -3,6 +3,7 @@
 	import { createToaster, Toast } from '@skeletonlabs/skeleton-svelte';
 
 	let { data, form } = $props();
+	let uploading = $state(false);
 	const toaster = createToaster({ placement: 'bottom-end', duration: 2200, gap: 8 });
 
 	const handleForm: SubmitFunction = () => {
@@ -14,6 +15,44 @@
 				('saved' in result.data || 'imageSaved' in result.data || 'coverSaved' in result.data)
 			) {
 				toaster.success({ title: 'Saved' });
+			}
+		};
+	};
+
+	const handleUpload: SubmitFunction = ({ cancel, formData }) => {
+		if (uploading) {
+			cancel();
+			return;
+		}
+
+		uploading = true;
+		const count = formData.getAll('images').filter((value) => value instanceof File && value.size).length;
+		const toastId = toaster.create({
+			title: `Uploading ${count} ${count === 1 ? 'image' : 'images'}…`,
+			type: 'loading',
+			duration: Infinity,
+			closable: false
+		});
+
+		return async ({ result, update }) => {
+			await update({ reset: false });
+			uploading = false;
+
+			if (result.type === 'success' && result.data && 'uploaded' in result.data) {
+				const count = Number(result.data.uploaded);
+				toaster.update(toastId, {
+					title: `${count} ${count === 1 ? 'image' : 'images'} uploaded`,
+					type: 'success',
+					duration: 2200,
+					closable: true
+				});
+			} else {
+				toaster.update(toastId, {
+					title: 'Upload failed',
+					type: 'error',
+					duration: 4000,
+					closable: true
+				});
 			}
 		};
 	};
@@ -68,7 +107,8 @@
 		method="post"
 		action="?/upload"
 		enctype="multipart/form-data"
-		use:enhance={handleForm}
+		aria-busy={uploading}
+		use:enhance={handleUpload}
 	>
 		<label class="label sm:col-span-2">
 			<span class="label-text text-xs text-surface-600-400">Images</span>
@@ -83,7 +123,9 @@
 			<input class="input font-mono text-sm" name="tags" placeholder="front_view casual_outfit" />
 		</label>
 		<div class="flex items-center gap-3 sm:col-span-2">
-			<button class="btn preset-filled">Upload images</button>
+			<button class="btn preset-filled" disabled={uploading}>
+				{uploading ? 'Uploading…' : 'Upload images'}
+			</button>
 			{#if form?.uploadError}<span class="text-sm text-error-600-400" role="alert">{form.uploadError}</span>{/if}
 		</div>
 	</form>
@@ -156,12 +198,14 @@
 	{#snippet children(toast)}
 		<Toast
 			{toast}
-			class="card preset-filled-success flex items-center justify-between gap-4 px-4 py-3 shadow-xl"
+			class="card flex items-center justify-between gap-4 px-4 py-3 shadow-xl {toast.type === 'error' ? 'preset-filled-error' : toast.type === 'loading' ? 'preset-tonal' : 'preset-filled-success'}"
 		>
 			<Toast.Message>
 				<Toast.Title class="text-sm font-medium">{toast.title}</Toast.Title>
 			</Toast.Message>
-			<Toast.CloseTrigger class="btn btn-sm preset-tonal" aria-label="Dismiss" />
+			{#if toast.closable !== false}
+				<Toast.CloseTrigger class="btn btn-sm preset-tonal" aria-label="Dismiss" />
+			{/if}
 		</Toast>
 	{/snippet}
 </Toast.Group>
